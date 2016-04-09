@@ -12,7 +12,8 @@
                   :exclusions [org.clojure/tools.reader]]
                  [sablono "0.3.6"]
                  [org.omcljs/om "0.9.0"]
-                 [com.cognitect/transit-cljs "0.8.237"]]
+                 [com.cognitect/transit-cljs "0.8.237"]
+                 [com.cemerick/url "0.1.1"]]
   
   :plugins [[lein-figwheel "0.5.2"]
             [lein-cljsbuild "1.1.3" :exclusions [[org.clojure/clojure]]]]
