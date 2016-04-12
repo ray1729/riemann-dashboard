@@ -13,7 +13,8 @@
                  [sablono "0.3.6"]
                  [org.omcljs/om "0.9.0"]
                  [com.cognitect/transit-cljs "0.8.237"]
-                 [com.cemerick/url "0.1.1"]]
+                 [com.cemerick/url "0.1.1"]
+                 [com.andrewmcveigh/cljs-time "0.4.0"]]
   
   :plugins [[lein-figwheel "0.5.2"]
             [lein-cljsbuild "1.1.3" :exclusions [[org.clojure/clojure]]]]
@@ -42,6 +43,13 @@
                 :compiler {:output-to "resources/public/js/compiled/riemann_dashboard.js"
                            :main riemann-dashboard.core
                            :optimizations :advanced
+                           :pretty-print false}}
+
+               {:id "whitespace"
+                :source-paths ["src"]
+                :compiler {:output-to "resources/public/js/compiled/riemann_dashboard.js"
+                           :main riemann-dashboard.core
+                           :optimizations :whitespace
                            :pretty-print false}}]}
 
   :figwheel {;; :http-server-root "public" ;; default and assumes "resources"

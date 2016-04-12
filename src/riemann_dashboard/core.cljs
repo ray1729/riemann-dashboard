@@ -1,8 +1,11 @@
 (ns riemann-dashboard.core
-  (:require [om.core :as om :include-macros true]
+  (:require [cemerick.url :refer [url]]
+            [cljs-time.core :as ct]
+            [cljs-time.format :as ctf]
+            [clojure.string :as str]
+            [om.core :as om :include-macros true]
             [riemann-dashboard.transport :as t]
-            [sablono.core :as html :refer-macros [html]]
-            [cemerick.url :refer [url]]))
+            [sablono.core :as html :refer-macros [html]]))
 
 (enable-console-print!)
 
@@ -48,6 +51,26 @@
                    :ws (t/connect ws-url :on-message handle-message)}]
     (reset! app-state new-state)))
 
+(defn format-interval
+  [i]
+  (let [s (rem (ct/in-seconds i) 60)
+        m (rem (ct/in-minutes i) 60)
+        h (rem (ct/in-hours i) 24)
+        d (ct/in-days i)]
+    (str/join " "
+              (cond
+                (> d 0) [d "d" h "h"]
+                (> h 0) [h "h" m "m"]
+                (> m 0) [m "m" s "s"]
+                (> s 0) [s "s"]))))
+
+(defn age
+  [now time-str]
+  (when time-str
+    (let [t (ctf/parse time-str)]
+      (when (ct/before? t now)
+        (format-interval (ct/interval t now))))))
+
 (defn state->class
   [state]
   (case state
@@ -58,16 +81,18 @@
     ""))
 
 (defn service-view
-  [{:strs [service state metric time] :as event} owner]
+  [{:strs [service state metric time description] :as event} owner]
   (reify
     om/IRender
     (render [this]
-      (html
-       [:tr {:class (state->class state)}
-        [:th service]
-        [:td state]
-        [:td (when metric (.toFixed metric 3))]
-        [:td time]]))))
+      (let [now (ct/now)]
+        (html
+         [:tr {:class (state->class state)}
+          [:th service]
+          [:td state]
+          [:td (when metric (.toFixed metric 3))]
+          [:td description]
+          [:td (age now time)]])))))
 
 (defn host-view
   [[host services] owner]
@@ -77,7 +102,9 @@
       (html
        [:div
         [:h1 host]
-        [:table.table.table-hover
+        [:table.table.table-bordered.table-hover
+         [:thead
+          [:tr (map (partial vector :th) ["Service" "State" "Metric" "Description" "Age"])]]
          [:tbody
           (om/build-all service-view
                         (map val (sort-by key services)))]]]))))
